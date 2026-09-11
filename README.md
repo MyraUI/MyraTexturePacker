@@ -32,4 +32,4 @@ See this link for thorough explanation of this feature: https://github.com/libgd
 Example set of input images (both ordinary and nine-patch): https://github.com/MyraUI/Myra/tree/master/assets-raw
 
 # Who Uses It?
-https://github.com/rds1983/Myra
+https://github.com/MyraUI/Myra
