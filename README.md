@@ -29,7 +29,7 @@ If the images don't fit on the atlas, then its size is doubled until the images 
 The texture atlas will consist of two files: my_atlas.png (atlas image) and my_atlas.xmat (atlas definition in XML format).
 
 MyraTexturePacker supports nine patch images. In order to use that feature, the input image name must have ".9" before the extension (e.g. `image.9.png`). Also, such an image must have a 1px border with black lines marking stretchable areas. 
-See this link for thorough explanation of this feature: https://github.com/libgdx/libgdx/wiki/Ninepatches
+See this link for thorough explanation of this feature: https://libgdx.com/wiki/graphics/2d/ninepatches
 
 Example set of input images (both ordinary and nine-patch): https://github.com/MyraUI/Myra/tree/master/assets-raw
 
