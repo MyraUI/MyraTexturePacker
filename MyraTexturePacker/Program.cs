@@ -202,7 +202,7 @@ namespace MyraTexturePacker
 			image.Data = newData;
 		}
 
-		private static Packer PackImages(string[] imageFiles, int width, int height)
+		private static Packer PackImages(string[] imageFiles, int width, int height, int padding)
 		{
 			Console.WriteLine("Atlas Size: {0}x{1}", width, height);
 
@@ -231,7 +231,7 @@ namespace MyraTexturePacker
 
 				Console.WriteLine("Size: {0}x{1}, Components: {2}", image.Width, image.Height, image.SourceComp);
 
-				var packRectangle = packer.PackRect(image.Width, image.Height, imageInfo);
+				var packRectangle = packer.PackRect(image.Width + padding * 2, image.Height + padding * 2, imageInfo);
 
 				// Double the size of the packer until the new rectangle will fit
 				while (packRectangle == null)
@@ -258,7 +258,7 @@ namespace MyraTexturePacker
 			return packer;
 		}
 
-		private static byte[] BuildAtlasBitmap(Packer packer)
+		private static byte[] BuildAtlasBitmap(Packer packer, int padding)
 		{
 			var bitmap = new byte[(long)packer.Width * packer.Height * 4];
 			foreach (var packRectangle in packer.PackRectangles)
@@ -271,7 +271,7 @@ namespace MyraTexturePacker
 				for (var y = 0; y < image.Height; ++y)
 				{
 					var sourcePos = (y * image.Width) * 4;
-					var destPos = (((y + packRectangle.Y) * (long)packer.Width) + packRectangle.X) * 4;
+					var destPos = (((y + packRectangle.Y + padding) * (long)packer.Width) + packRectangle.X + padding) * 4;
 
 					Array.Copy(image.Data, sourcePos, bitmap, destPos, image.Width * 4);
 				}
@@ -307,7 +307,7 @@ namespace MyraTexturePacker
 			}
 		}
 
-		private static XDocument CreateOutputXML(string outputFile, Packer packer)
+		private static XDocument CreateOutputXML(string outputFile, Packer packer, int padding)
 		{
 			var doc = new XDocument();
 			var root = new XElement(TextureAtlasName);
@@ -326,10 +326,10 @@ namespace MyraTexturePacker
 					id = id.Substring(0, id.Length - 2);
 				}
 				entry.SetAttributeValue(IdName, id);
-				entry.SetAttributeValue(LeftName, packRectangle.X);
-				entry.SetAttributeValue(TopName, packRectangle.Y);
-				entry.SetAttributeValue(WidthName, packRectangle.Width);
-				entry.SetAttributeValue(HeightName, packRectangle.Height);
+				entry.SetAttributeValue(LeftName, packRectangle.X + padding);
+				entry.SetAttributeValue(TopName, packRectangle.Y + padding);
+				entry.SetAttributeValue(WidthName, imageInfo.Image.Width);
+				entry.SetAttributeValue(HeightName, imageInfo.Image.Height);
 
 				if (imageInfo.IsNinePatch)
 				{
@@ -345,7 +345,7 @@ namespace MyraTexturePacker
 			return doc;
 		}
 
-		public static void Process(string inputFolder, string outputFile, int width, int height)
+		public static void Process(string inputFolder, string outputFile, int width, int height, int padding = 2)
 		{
 			var outputType = DetermineOutputType(outputFile);
 			var imageFiles = GetImageFiles(inputFolder);
@@ -357,17 +357,17 @@ namespace MyraTexturePacker
 
 			Console.WriteLine("{0} image files found at {1}.", imageFiles.Length, inputFolder);
 
-			var packer = PackImages(imageFiles, width, height);
+			var packer = PackImages(imageFiles, width, height, padding);
 
 			// All images had been packed
 			// Now build up the atlas bitmap
-			var bitmap = BuildAtlasBitmap(packer);
+			var bitmap = BuildAtlasBitmap(packer, padding);
 
 			// Write output image
 			WriteOutputImage(outputFile, outputType, packer.Width, packer.Height, bitmap);
 
 			// Generate XML
-			var xml = CreateOutputXML(outputFile, packer);
+			var xml = CreateOutputXML(outputFile, packer, padding);
 
 			// Write it
 			var outputFileXml = Path.ChangeExtension(outputFile, "xmat");
@@ -381,7 +381,7 @@ namespace MyraTexturePacker
 		{
 			if (args.Length < 2)
 			{
-				Console.WriteLine("Usage: MyraTexturePacker.exe <input_folder> <output_file> [width] [height]");
+				Console.WriteLine("Usage: MyraTexturePacker.exe <input_folder> <output_file> [width] [height] [padding]");
 				return;
 			}
 
@@ -399,7 +399,13 @@ namespace MyraTexturePacker
 					height = int.Parse(args[3]);
 				}
 
-				Process(args[0], args[1], width, height);
+				var padding = 2;
+				if (args.Length > 4)
+				{
+					padding = int.Parse(args[4]);
+				}
+
+				Process(args[0], args[1], width, height, padding);
 			}
 			catch (Exception ex)
 			{

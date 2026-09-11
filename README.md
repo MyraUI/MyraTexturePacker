@@ -14,7 +14,7 @@ dotnet tool update --global myratexpack
 ```
 
 # Usage
-`myratexpack <input_folder> <output_file> [width] [height]`
+`myratexpack <input_folder> <output_file> [width] [height] [padding]`
 
 E.g.
 `myratexpack "C:\Temp" "C:\Temp\my_atlas.png"`
@@ -23,6 +23,8 @@ That command will process all images in the folder "C:\Temp" and create a textur
 
 `width` and `height` are optional parameters. If they aren't provided, then default values 256x256 are used.
 If the images don't fit on the atlas, then its size is doubled until the images fit.
+
+`padding` is an optional parameter that sets the images' padding in pixels. If it isn't provided, then the default value of 2 is used.
 
 The texture atlas will consist of two files: my_atlas.png (atlas image) and my_atlas.xmat (atlas definition in XML format).
 
