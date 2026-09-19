@@ -16,6 +16,7 @@ namespace MyraTexturePacker
 		private const string ImageName = "Image";
 		private const string TextureRegionName = "TextureRegion";
 		private const string NinePatchRegionName = "NinePatchRegion";
+		private const string FilterName = "Filter";
 		private const string LeftName = "Left";
 		private const string TopName = "Top";
 		private const string WidthName = "Width";
@@ -29,8 +30,27 @@ namespace MyraTexturePacker
 		{
 			public string Path;
 			public ImageResult Image;
+			public string Id;
+			public string Filter;
 			public bool IsNinePatch;
 			public int NinePatchLeft, NinePatchRight, NinePatchTop, NinePatchBottom;
+		}
+
+		private static readonly string[] FilterValues = { "Nearest", "Linear", "Anisotropic" };
+
+		private static string ExtractFilter(ref string id)
+		{
+			foreach (var filter in FilterValues)
+			{
+				var suffix = "." + filter;
+				if (id.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+				{
+					id = id.Substring(0, id.Length - suffix.Length);
+					return filter;
+				}
+			}
+
+			return null;
 		}
 
 		private enum OutputType
@@ -220,14 +240,17 @@ namespace MyraTexturePacker
 				var imageInfo = new ImageInfo
 				{
 					Path = file,
+					Id = Path.GetFileNameWithoutExtension(file),
 					Image = image
 				};
 
-				var name = Path.GetFileNameWithoutExtension(file);
-				if (name.EndsWith(".9"))
+				if (imageInfo.Id.EndsWith(".9"))
 				{
+					imageInfo.Id = imageInfo.Id.Substring(0, imageInfo.Id.Length - 2);
 					ProcessNinePatch(imageInfo);
 				}
+
+				imageInfo.Filter = ExtractFilter(ref imageInfo.Id);
 
 				Console.WriteLine("Size: {0}x{1}, Components: {2}", image.Width, image.Height, image.SourceComp);
 
@@ -320,16 +343,17 @@ namespace MyraTexturePacker
 
 				var entry = new XElement(imageInfo.IsNinePatch ? NinePatchRegionName : TextureRegionName);
 
-				var id = Path.GetFileNameWithoutExtension(imageInfo.Path);
-				if (id.EndsWith(".9"))
-				{
-					id = id.Substring(0, id.Length - 2);
-				}
-				entry.SetAttributeValue(IdName, id);
+				entry.SetAttributeValue(IdName, imageInfo.Id);
 				entry.SetAttributeValue(LeftName, packRectangle.X + padding);
 				entry.SetAttributeValue(TopName, packRectangle.Y + padding);
 				entry.SetAttributeValue(WidthName, imageInfo.Image.Width);
 				entry.SetAttributeValue(HeightName, imageInfo.Image.Height);
+
+				if (!string.IsNullOrEmpty(imageInfo.Filter))
+				{
+					// Filtering has been specified explicitly for this image
+					entry.SetAttributeValue(FilterName, imageInfo.Filter);
+				}
 
 				if (imageInfo.IsNinePatch)
 				{

@@ -31,6 +31,8 @@ The texture atlas will consist of two files: my_atlas.png (atlas image) and my_a
 MyraTexturePacker supports nine patch images. In order to use that feature, the input image name must have ".9" before the extension (e.g. `image.9.png`). Also, such an image must have a 1px border with black lines marking stretchable areas. 
 See this link for thorough explanation of this feature: https://libgdx.com/wiki/graphics/2d/ninepatches
 
+Texture filtering may also be specified explicitly by appending `.nearest`, `.linear` or `.anisotropic` to the input image name (e.g. `slider.linear.png` or `window.nearest.9.png`). When a filter is specified, it is stripped from the image id and is written into the output atlas XML file as a `Filter` attribute (e.g. `<TextureRegion Id="slider" ... Filter="Linear" />`). Images without the suffix don't get the `Filter` attribute.
+
 Example set of input images (both ordinary and nine-patch): https://github.com/MyraUI/Myra/tree/master/assets-raw
 
 # Who Uses It?
